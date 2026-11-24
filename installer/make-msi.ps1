@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $work = Join-Path $OutputDirectory 'msi-obj'
 [IO.Directory]::CreateDirectory($work) | Out-Null
-$target = Join-Path $OutputDirectory 'Blockganizer-1.10.0-x64.msi'
+$target = Join-Path $OutputDirectory 'Blockganizer-1.13.0-x64.msi'
 $tempMsi = Join-Path $work ('package-' + [Guid]::NewGuid().ToString('N') + '.msi')
 $app = Join-Path $OutputDirectory 'Blockganizer.exe'
 $config = "$app.config"
@@ -45,17 +45,17 @@ function Import-Table($name, [string]$head, [string]$types, [string]$key, [strin
 }
 
 Import-Table Property 'Property|Value' 's72|l0' 'Property' @(
-    'ProductCode|{EE32DC44-4887-45BD-A8D8-5771E03EB7AC}'
+    'ProductCode|{5F65D056-14C2-4EAA-91CC-4558AD21CE47}'
     'UpgradeCode|{78D16463-5A6A-4812-A614-A7E89D03479A}'
     'ProductLanguage|1033'
     'ProductName|Blockganizer'
-    'ProductVersion|1.10.0'
+    'ProductVersion|1.13.0'
     'SecureCustomProperties|OLDERBLOCKGANIZER'
     'Manufacturer|Blockganizer'
     'LIMITUI|1'
 )
 Import-Table Upgrade 'UpgradeCode|VersionMin|VersionMax|Language|Attributes|Remove|ActionProperty' 's38|S20|S20|S255|i4|S255|s72' 'UpgradeCode|VersionMin|VersionMax|Language|Attributes' @(
-    '{78D16463-5A6A-4812-A614-A7E89D03479A}||1.10.0||0||OLDERBLOCKGANIZER'
+    '{78D16463-5A6A-4812-A614-A7E89D03479A}||1.13.0||0||OLDERBLOCKGANIZER'
 )
 Import-Table Directory 'Directory|Directory_Parent|DefaultDir' 's72|S72|l255' 'Directory' @(
     'TARGETDIR||SourceDir'
@@ -73,7 +73,7 @@ Import-Table Feature 'Feature|Feature_Parent|Title|Description|Display|Level|Dir
 )
 Import-Table FeatureComponents 'Feature_|Component_' 's38|s72' 'Feature_|Component_' @('Desktop|AppBinary','Desktop|MenuLink')
 Import-Table File 'File|Component_|FileName|FileSize|Version|Language|Attributes|Sequence' 's72|s72|l255|i4|S72|S20|I2|i2' 'File' @(
-    ('MainExe|AppBinary|BLOCKG~1.EXE{pipe}Blockganizer.exe|{0}|1.10.0.0||16384|1'.Replace('{pipe}','!PIPE!') -f (Get-Item -LiteralPath $app).Length).Replace('!PIPE!','{pipe}')
+    ('MainExe|AppBinary|BLOCKG~1.EXE{pipe}Blockganizer.exe|{0}|1.13.0.0||16384|1'.Replace('{pipe}','!PIPE!') -f (Get-Item -LiteralPath $app).Length).Replace('!PIPE!','{pipe}')
     ('AppConfig|AppBinary|BLKCFG~1.CFG{pipe}Blockganizer.exe.config|{0}|||16384|2'.Replace('{pipe}','!PIPE!') -f (Get-Item -LiteralPath $config).Length).Replace('!PIPE!','{pipe}')
 )
 Import-Table Media 'DiskId|LastSequence|DiskPrompt|Cabinet|VolumeLabel|Source' 'i2|i2|L64|S255|S32|S72' 'DiskId' @('1|2||#app.cab||')
