@@ -55,7 +55,22 @@ $cube = Join-Path $root 'assets\ActivityCube.png'
 if (!(Test-Path -LiteralPath $cube)) { throw 'Falta la ilustración assets\ActivityCube.png.' }
 $clockFabric = Join-Path $root 'assets\ClockFabric.png'
 if (!(Test-Path -LiteralPath $clockFabric)) { throw 'Falta la ilustración assets\ClockFabric.png.' }
-& $compiler /nologo /target:winexe /platform:x64 /optimize+ "/resource:$art,Blockganizer.WeekBlocks.png" "/resource:$wash,Blockganizer.Watercolor.jpg" "/resource:$cube,Blockganizer.ActivityCube.png" "/resource:$clockFabric,Blockganizer.ClockFabric.png" "/win32icon:$icon" "/win32manifest:$root\src\app.manifest" "/out:$exe" @references @src
+$wordmark = Join-Path $root 'assets\TextileWordmark.png'
+if (!(Test-Path -LiteralPath $wordmark)) { throw 'Falta la ilustración assets\TextileWordmark.png.' }
+$fontResources = Join-Path $out 'Fonts.g.resources'
+$fontWriter = [Resources.ResourceWriter]::new($fontResources)
+try {
+    $fontFiles = 'Nunito-Regular.ttf','Nunito-Italic.ttf','Nunito-Bold.ttf','Nunito-ExtraBold.ttf','Nunito-OFL.txt'
+    foreach ($file in $fontFiles) {
+        $path = Join-Path $root "assets\$file"
+        $stream = [IO.File]::OpenRead($path)
+        $fontWriter.AddResource("fonts/" + $file.ToLowerInvariant(), $stream, $true)
+    }
+    $fontWriter.Generate()
+} finally {
+    $fontWriter.Dispose()
+}
+& $compiler /nologo /target:winexe /platform:x64 /optimize+ "/resource:$art,Blockganizer.WeekBlocks.png" "/resource:$wash,Blockganizer.Watercolor.jpg" "/resource:$cube,Blockganizer.ActivityCube.png" "/resource:$clockFabric,Blockganizer.ClockFabric.png" "/resource:$wordmark,Blockganizer.TextileWordmark.png" "/resource:$fontResources,Blockganizer.g.resources" "/win32icon:$icon" "/win32manifest:$root\src\app.manifest" "/out:$exe" @references @src
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de Blockganizer.' }
 Copy-Item -LiteralPath (Join-Path $root 'src\App.config') -Destination "$exe.config"
 if (!$AppOnly) { & (Join-Path $root 'installer\make-msi.ps1') -OutputDirectory $out }
