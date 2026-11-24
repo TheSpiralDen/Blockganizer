@@ -56,8 +56,9 @@ namespace Blockganizer
 
     internal static class Ui
     {
-        internal static readonly FontFamily InterfaceTypeface = new FontFamily("Trebuchet MS, Segoe UI");
-        private static ImageSource artwork, wash, clockFabric;
+        internal static readonly FontFamily InterfaceTypeface =
+            new FontFamily(new Uri("pack://application:,,,/"), "./fonts/#Nunito, Segoe UI");
+        private static ImageSource artwork, wash, clockFabric, wordmark;
 
         public static Image Artwork()
         {
@@ -69,6 +70,14 @@ namespace Blockganizer
         {
             if (clockFabric == null) clockFabric = LoadImage("Blockganizer.ClockFabric.png");
             return new Image { Source = clockFabric, Stretch = Stretch.Uniform, IsHitTestVisible = false };
+        }
+
+        public static Image Wordmark()
+        {
+            if (wordmark == null) wordmark = LoadImage("Blockganizer.TextileWordmark.png");
+            var image = new Image { Source = wordmark, Stretch = Stretch.Uniform, IsHitTestVisible = false };
+            AutomationProperties.SetName(image, "Blockganizer");
+            return image;
         }
 
         public static Brush Watercolor(bool light)
@@ -130,30 +139,45 @@ namespace Blockganizer
             return shell;
         }
 
-        public static TextBlock Text(string text, double size, Brush color, bool strong = false)
+        public static FabricLabel Text(string text, double size, Brush color, bool strong = false)
         {
-            return new TextBlock {
-                Text = text, FontSize = size, Foreground = color, FontFamily = InterfaceTypeface,
-                FontWeight = strong ? FontWeights.Bold : FontWeights.Normal,
-                TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center
-            };
+            var label = new FabricLabel();
+            label.Text = text;
+            label.FontSize = size;
+            label.UseInk(color);
+            label.FontFamily = InterfaceTypeface;
+            label.FontWeight = strong ? FontWeights.ExtraBold : FontWeights.Bold;
+            label.TextTrimming = TextTrimming.CharacterEllipsis;
+            label.VerticalAlignment = VerticalAlignment.Center;
+            return label;
         }
         public static Border Box(Brush fill, Brush stroke, double radius, double padding = 0)
         {
             return new Border { Background = fill, BorderBrush = stroke, BorderThickness = new Thickness(stroke == null ? 0 : 1),
                 CornerRadius = new CornerRadius(radius), Padding = new Thickness(padding) };
         }
+
+        public static ToolTip Tip(string text, Palette p)
+        {
+            var label = Text(text, 12, p.Text);
+            label.MaxWidth = 260;
+            label.TextWrapping = TextWrapping.Wrap;
+            return new ToolTip { Content = label, Background = p.Card, BorderBrush = p.Border };
+        }
+
         public static Button Button(string label, string name, Palette p, Action click, bool primary = false, bool quiet = false)
         {
+            Brush ink = primary ? p.AccentInk : p.Text;
+            bool hasLetters = Array.Exists(label.ToCharArray(), char.IsLetterOrDigit);
             var button = new Button {
-                Content = label, Foreground = primary ? p.AccentInk : p.Text,
+                Content = hasLetters ? (object)Text(label, 12, ink) : label, Foreground = FabricInk.From(ink),
                 Background = primary ? p.Accent : quiet ? Brushes.Transparent : p.Card,
                 BorderBrush = primary || quiet ? Brushes.Transparent : p.Border,
                 BorderThickness = new Thickness(1), Padding = new Thickness(11, 5, 11, 5),
-                MinHeight = 31, FontSize = 12, Cursor = System.Windows.Input.Cursors.Hand
+                MinHeight = 31, FontSize = 12, FontWeight = FontWeights.Bold, Cursor = System.Windows.Input.Cursors.Hand
             };
             AutomationProperties.SetName(button, name);
-            if (name != label) button.ToolTip = name;
+            if (name != label) button.ToolTip = Tip(name, p);
             button.Click += (_, __) => click();
             var shell = new FrameworkElementFactory(typeof(Border), "Surface");
             shell.SetValue(Border.CornerRadiusProperty, new CornerRadius(9));
@@ -172,6 +196,13 @@ namespace Blockganizer
             AddTrigger(template, UIElement.IsEnabledProperty, false, Border.OpacityProperty, .4);
             button.Template = template;
             return button;
+        }
+
+        public static void ButtonInk(Button button, Brush ink)
+        {
+            button.Foreground = FabricInk.From(ink);
+            var label = button.Content as FabricLabel;
+            if (label != null) label.UseInk(ink);
         }
         public static ControlTemplate ComboTemplate(Palette p)
         {
@@ -195,9 +226,10 @@ namespace Blockganizer
     </ToggleButton>
     <ContentPresenter x:Name='Label' Content='{TemplateBinding SelectionBoxItem}'
                       ContentTemplate='{TemplateBinding SelectionBoxItemTemplate}'
+                      TextElement.Foreground='{TemplateBinding Foreground}'
                       VerticalAlignment='Center' Margin='9,0,29,0' IsHitTestVisible='False'/>
     <TextBox x:Name='PART_EditableTextBox' Visibility='Collapsed' Background='Transparent'
-             Foreground='__INK__' CaretBrush='__INK__' BorderThickness='0' Padding='3,0'
+             Foreground='{TemplateBinding Foreground}' CaretBrush='__INK__' BorderThickness='0' Padding='3,0'
              Margin='6,1,26,1' VerticalContentAlignment='Center' IsReadOnly='{TemplateBinding IsReadOnly}'/>
     <Popup x:Name='PART_Popup' Placement='Bottom' PlacementTarget='{Binding ElementName=Root}'
            AllowsTransparency='True' IsOpen='{TemplateBinding IsDropDownOpen}'>

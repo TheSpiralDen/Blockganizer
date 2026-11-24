@@ -24,7 +24,7 @@ namespace Blockganizer
         private bool archived;
         private List<Activity> activities;
         private List<Block> blocks;
-        private TextBlock status;
+        private FabricLabel status;
         private ScrollViewer boardScroll, libraryScroll;
         private Grid viewport, surface;
         private FrameworkElement previewTarget;
@@ -78,7 +78,7 @@ namespace Blockganizer
             timer.IsEnabled = timerDeadline > 0;
             p = new Palette(store.Setting("theme", "light") == "light");
             Background = p.Background;
-            Foreground = p.Text;
+            Foreground = FabricInk.From(p.Text);
             Resources[typeof(ScrollBar)] = Ui.ScrollStyle(p);
             activities = store.Activities(week);
             blocks = store.Week(week);
@@ -134,8 +134,9 @@ namespace Blockganizer
             var emblem = Ui.Artwork();
             emblem.Width = emblem.Height = 32;
             identity.Children.Add(emblem);
-            var title = Ui.Text("Blockganizer", 22, p.Text, true);
-            title.FontWeight = FontWeights.Bold;
+            var title = Ui.Wordmark();
+            title.Width = 168;
+            title.Height = 35;
             title.Margin = new Thickness(8, 0, 0, 0);
             identity.Children.Add(title);
             Ui.Put(grid, identity);
@@ -192,9 +193,9 @@ namespace Blockganizer
 
             var title = new StackPanel();
             title.Children.Add(Ui.Text("Semana " + Calendar.Week(week).ToString("00"), 15, p.Text, true));
-            var range = Ui.Text(Calendar.Range(week), 35, p.Text, true);
-            range.FontWeight = FontWeights.Bold;
-            title.Children.Add(range);
+            var range = Ui.Text(Calendar.Range(week), 35, Palette.Paint(p.Light ? "#3539A1" : "#C6C9FF"), true);
+            range.FontWeight = FontWeights.ExtraBold;
+            title.Children.Add(FabricHeading.Wrap(range));
             Ui.Put(lead, title, 0, 1);
 
             var summary = new StackPanel { Margin = new Thickness(22, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
@@ -227,7 +228,7 @@ namespace Blockganizer
             AddButton(actions, "‹", "Semana anterior", () => Navigate(week.AddDays(-7), "previous"), "previous");
             var todayButton = AddButton(actions, "Hoy", "Hoy", () => Navigate(Calendar.Monday(DateTime.Today), "today"), "today");
             todayButton.Background = p.Complete;
-            todayButton.Foreground = p.CompleteInk;
+            Ui.ButtonInk(todayButton, p.CompleteInk);
             AddButton(actions, "›", "Semana siguiente", () => Navigate(week.AddDays(7), "next"), "next");
             Button goals = null;
             goals = AddButton(actions, "◎  Objetivos", "Objetivos semanales", () => ShowGoals(goals), "goals");
@@ -271,7 +272,7 @@ namespace Blockganizer
                 var quote = MotivationalQuotes.ForDay(DateTime.Today, quoteOffset);
                 line.Text = "«" + quote.Text + "»";
                 author.Text = quote.Author;
-                words.ToolTip = quote.Source;
+                words.ToolTip = Ui.Tip(quote.Source, p);
             };
             var next = Ui.Button("↻", "Otra frase", p, () =>
             {
@@ -337,9 +338,9 @@ namespace Blockganizer
             var dayLabel = new Grid();
             Ui.AutoRows(dayLabel, 2);
             dayLabel.VerticalAlignment = VerticalAlignment.Center;
-            var caption = Ui.Text(name + " " + date.Day, 21, p.Text, true);
-            caption.FontWeight = FontWeights.Bold;
-            Ui.Put(dayLabel, caption);
+            var dayInk = today ? Palette.Paint(p.Light ? "#992942" : "#FFB2B5") : p.Text;
+            var caption = Ui.Text(name + " " + date.Day, 21, dayInk, true);
+            Ui.Put(dayLabel, FabricHeading.Wrap(caption));
             if (today)
             {
                 var tag = Ui.Box(p.TodayTag, null, 10);
@@ -474,7 +475,7 @@ namespace Blockganizer
             {
                 note.Background = p.Raised;
                 note.Foreground = p.Accent;
-                note.ToolTip = new TextBlock { Text = block.Note, MaxWidth = 260, TextWrapping = TextWrapping.Wrap };
+                note.ToolTip = Ui.Tip(block.Note, p);
             }
             rail.Children.Add(note);
 
@@ -515,7 +516,7 @@ namespace Blockganizer
             button.MinHeight = 27;
             button.Padding = new Thickness(0);
             button.Margin = new Thickness(0, 1, 0, 1);
-            button.ToolTip = action;
+            button.ToolTip = Ui.Tip(action, p);
             focusTargets[key] = button;
             return button;
         }
@@ -553,9 +554,8 @@ namespace Blockganizer
             mark.VerticalAlignment = VerticalAlignment.Center;
             mark.Margin = new Thickness(0, 0, 10, 0);
             labels.Children.Add(mark);
-            var dockTitle = Ui.Text("Biblioteca de actividades", 22, p.Text, true);
-            dockTitle.FontWeight = FontWeights.Bold;
-            labels.Children.Add(dockTitle);
+            var dockTitle = Ui.Text("Biblioteca de actividades", 22, Palette.Paint(p.Light ? "#784510" : "#FFD081"), true);
+            labels.Children.Add(FabricHeading.Wrap(dockTitle));
             int count = activities.Count(a => a.Status == (archived ? 1 : 0));
             var summary = Ui.Text(count + (archived ? " archivadas" : count == 1 ? " actividad" : " actividades"), 11, p.Secondary);
             summary.Margin = new Thickness(9, 2, 0, 0);
@@ -580,7 +580,7 @@ namespace Blockganizer
             if (!archived)
             {
                 filters.Background = p.Complete;
-                filters.Foreground = p.CompleteInk;
+                Ui.ButtonInk(filters, p.CompleteInk);
             }
             var archiveButton = AddButton(actions, archived ? "Ver activas" : "Archivadas",
                 archived ? "Ver actividades activas" : "Ver actividades archivadas",
@@ -733,7 +733,7 @@ namespace Blockganizer
                 caption.Margin = new Thickness(0, 10, 0, 3);
                 entries.Children.Add(caption);
                 var progress = new ProgressBar { Height = 7, Minimum = 0, Maximum = a.Goal, Value = Math.Min(a.Goal, completed),
-                    Background = p.Raised, Foreground = p.CategoryInk(a.Color), BorderThickness = new Thickness(0) };
+                    Background = p.Raised, Foreground = FabricInk.From(p.CategoryInk(a.Color)), BorderThickness = new Thickness(0) };
                 AutomationProperties.SetName(progress, a.Name + ": " + completed + " de " + a.Goal + " minutos");
                 entries.Children.Add(progress);
                 var value = Ui.Text(completed + " / " + a.Goal + " min", 11, p.Secondary);
@@ -777,8 +777,8 @@ namespace Blockganizer
         private void Report(Exception error)
         {
             status.Text = "No se pudo guardar el cambio";
-            status.Foreground = p.Danger;
-            status.ToolTip = error.Message;
+                status.UseInk(p.Danger);
+                status.ToolTip = Ui.Tip(error.Message, p);
         }
         private void Plan(long id, DateTime date, long? anchor, bool after, bool keyboard)
         {
@@ -854,11 +854,14 @@ namespace Blockganizer
 
         private ContextMenu NewMenu()
         {
-            return new ContextMenu { Background = p.Card, Foreground = p.Text, BorderBrush = p.Border };
+            return new ContextMenu { Background = p.Card, Foreground = FabricInk.From(p.Text), BorderBrush = p.Border,
+                FontFamily = Ui.InterfaceTypeface, FontWeight = FontWeights.Bold };
         }
         private void Item(ItemsControl menu, string title, Action action, Action<MenuItem> fill = null)
         {
-            var item = new MenuItem { Header = title, Background = p.Card, Foreground = p.Text };
+            var item = new MenuItem { Header = Ui.Text(title, 12, p.Text), Background = p.Card, Foreground = FabricInk.From(p.Text),
+                FontFamily = Ui.InterfaceTypeface, FontWeight = FontWeights.Bold };
+            AutomationProperties.SetName(item, title);
             if (action != null) item.Click += (_, __) => action();
             if (fill != null) fill(item);
             menu.Items.Add(item);

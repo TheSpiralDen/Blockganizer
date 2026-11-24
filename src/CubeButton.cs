@@ -23,7 +23,7 @@ namespace Blockganizer
             Width = Height = size;
             Cursor = Cursors.Hand;
             FocusVisualStyle = null;
-            ToolTip = description;
+            ToolTip = Ui.Tip(description, palette);
             ToolTipService.SetInitialShowDelay(this, 320);
             AutomationProperties.SetName(this, description.Replace("\n", " · "));
             AutomationProperties.SetHelpText(this, "Enter o clic derecho para abrir las opciones");

@@ -32,7 +32,8 @@ namespace Blockganizer
             input = new TextBox {
                 Text = block.Note, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxLength = 600,
-                Height = 105, Padding = new Thickness(8), FontSize = 14, Foreground = p.Text,
+                Height = 105, Padding = new Thickness(8), FontSize = 14, Foreground = FabricInk.Field(p.Text),
+                FontWeight = FontWeights.Bold,
                 CaretBrush = p.Text, Background = p.Card, BorderBrush = p.Border
             };
             AutomationProperties.SetName(input, "Nota de " + block.Name);

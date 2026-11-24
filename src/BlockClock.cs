@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 
 namespace Blockganizer
@@ -92,7 +93,7 @@ namespace Blockganizer
         private static TextBlock Digits(double size, Brush ink)
         {
             var text = Ui.Text("", size, ink, true);
-            text.FontFamily = new FontFamily("Consolas, Trebuchet MS");
+            Typography.SetNumeralAlignment(text, FontNumeralAlignment.Tabular);
             text.HorizontalAlignment = HorizontalAlignment.Center;
             return text;
         }

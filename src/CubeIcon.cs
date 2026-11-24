@@ -97,7 +97,7 @@ namespace Blockganizer
                 RadiusX = 2, RadiusY = 2
             });
             var face = new StackPanel { Margin = new Thickness(4, 4, 4, 4), VerticalAlignment = VerticalAlignment.Center };
-            var typeface = new Typeface(Ui.InterfaceTypeface, FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+            var typeface = new Typeface(Ui.InterfaceTypeface, FontStyles.Normal, FontWeights.ExtraBold, FontStretches.Normal);
             double width = patch.Width - face.Margin.Left - face.Margin.Right;
             double fontSize = TitleFontSize;
             List<string> lines = null;

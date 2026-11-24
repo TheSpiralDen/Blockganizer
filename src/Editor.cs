@@ -21,7 +21,7 @@ namespace Blockganizer
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             ShowInTaskbar = false;
             Background = p.Background;
-            Foreground = p.Text;
+            Foreground = FabricInk.From(p.Text);
             FontFamily = owner.FontFamily;
 
             Resources[SystemColors.WindowBrushKey] = p.Card;
@@ -39,7 +39,7 @@ namespace Blockganizer
                 original == null ? Catalog.Colors[0].Value : original.Color, 52);
             preview.Margin = new Thickness(0, 0, 10, 0);
             bannerRow.Children.Add(preview);
-            bannerRow.Children.Add(Ui.Text(Title, 22, p.Text, true));
+            bannerRow.Children.Add(FabricHeading.Wrap(Ui.Text(Title, 22, p.Text, true)));
             banner.Child = bannerRow;
             form.Children.Add(banner);
             var name = Input(duplicate ? original.Name + " (copia)" : original == null ? "" : original.Name, p, 70);
@@ -61,7 +61,7 @@ namespace Blockganizer
             Field(pair.Item2, "Color", color, p);
             foreach (ComboBox combo in new[] { category, icon, color })
             {
-                combo.Foreground = p.Text;
+            combo.Foreground = FabricInk.Field(p.Text);
                 combo.Background = p.Card;
                 combo.BorderBrush = p.Border;
                 combo.Template = Ui.ComboTemplate(p);
@@ -137,7 +137,8 @@ namespace Blockganizer
         }
         private static TextBox Input(string text, Palette p, int max)
         {
-            return new TextBox { Text = text, MaxLength = max, Background = p.Card, Foreground = p.Text,
+            return new TextBox { Text = text, MaxLength = max, Background = p.Card, Foreground = FabricInk.Field(p.Text),
+                FontWeight = FontWeights.Bold,
                 BorderBrush = p.Border, Padding = new Thickness(7, 4, 7, 4), MinHeight = 30, CaretBrush = p.Text };
         }
         private static void Field(Panel parent, string title, Control input, Palette p)
